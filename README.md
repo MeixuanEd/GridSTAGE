@@ -4,7 +4,7 @@ GridSTAGE (Spatio-Temporal Adversarial scenario GEneration) is a multivariate sp
 
 A thorough assessment of the impact of adversarial scenarios in the power grid and  their timely detection are critical for determining the appropriate response and steering the system back to safety.  Attacks on measurements from sensors such as Phasor Measurement Units (PMUs) or on control signals from  Automatic-Generation-Control (AGC) can mislead power system operators into taking wrong control actions and, therefore, lead to catastrophic failures.  
 
-## **GridSTAGE**
+## **Description of Simulation Framework**
 
 We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u>patio <u>T</u>emporal <u>A</u>dversarial Scenario <u>GE</u>neration framework)" that models the cyber-physical system of the power grid, simulates adversarial scenarios in the system and generates multi-variate, spatio-temporal network data.  This data can be used to train ML models for anomaly detection, control or development of visualization tools.  Our framework supports simulation of attacks such as ramp, step, random, time-delay and packet-loss on PMU data.  Find an overview of this simulation framework in the presentation [GridSTAGE: SpatioTemporal Adversarial Scenario Generation framework](docs/Powerdrone_eML_2020Apr_v1.pdf).
 
@@ -118,21 +118,9 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
    fdot: [238x39 double] -- frequency rate (Hz/sec)
   ```
 
-   SCADAData: 
+   SCADAData, MetricData, ACEData
 
   Real, reactive power and voltage magnitude at a reporting rate of once every 2 sec
 
   'Vmeas_con' in data file contains the locations for taking SCADA measurements 
 
-   MetricData:
-
-   ACEData:
-
-
-<<<<<<< HEAD
-=======
-![Image description](images/powerdrone-intro.png)
-
-# Tutorial
-* Learn about [GridSTAGE](docs/Powerdrone_eML_2020Apr_v1.pdf)
->>>>>>> 77c07693c5a73040045263f0285209830fbce87b
