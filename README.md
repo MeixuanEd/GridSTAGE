@@ -77,11 +77,11 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
       Please provide a consistent time step - this helps in saving the data as PMU measurements or SCADA measurements 
   11. PMU_attack: Indicate if there is any cyber-attack on PMU; '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
   12. AT: Select the type of cyber-attack to be implemented in the simulation run
-      AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
-      AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
-      AttackTypes{3}: 'Ramp' attack (PMU measurement gradually modified over attack period
-      AttackTypes{4}: 'Step' attack (PMU measurement scaled based on scaling factor)
-      AttackTypes{5}: 'Poisoning' attack (PMU measurement are randomly corrupted by noise)
+      a. AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
+      b. AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
+      c. AttackTypes{3}: 'Ramp' attack (PMU measurement gradually modified over attack period
+      d. AttackTypes{4}: 'Step' attack (PMU measurement scaled based on scaling factor)
+      e. AttackTypes{5}: 'Poisoning' attack (PMU measurement are randomly corrupted by noise)
   13. n_attack_scenarios: Number of scenarios with cyber-attacks to simulate
   14. n_fault_locations: Number of fault scenarios (data with respect to each fault location will be saved as a single scenario)
   15. n_fault_type: Number of fault-types (data with respect to each fault type will be saved as a single scenario)
