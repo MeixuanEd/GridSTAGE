@@ -13,7 +13,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 * **Requirements:**
 
   * You need to have MATLAB installed in your machine.
-  * Download Power System Toolbox (PST) and save files in the sub-directory 'Matlab_PST'. If you select a different name then the pathname needs to updated in the code accordingly.
+  * Download Power System Toolbox (PST) and save files in the sub-directory 'Matlab_PST'. If you select a different name then the pathname needs to be updated in the code accordingly.
   * Download the codes 'GenerateTimeSeriesData.m', and the sub-directory 'Supporting Files'.
 
 * **Description**:
@@ -33,7 +33,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
   vi.   mtg_sig_PD.m
   vii.  ml_sig_PD.m
   viii. loadflow_PD.m
-  ix.   data16m.m [This is the data file for IEEE 68 bus system]
+  ix.   data16m_PD.m [This is the data file for IEEE 68 bus system]
 
   ![Image description](images/CodeWorkflow.PNG)
 
@@ -45,7 +45,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 
   1. Load changes
   2. AGC control
-     AGC control code developed by Alejandro Dominguez-Garcia and his research group has been integrated to the system and adapted for our purpose.
+     AGC control code developed by Jiangmeng Zhang and Alejandro Dominguez-Garcia (ELectrical and Computer Engineering, University of Illinois Urbana Champaign) has been integrated and adapted for our purpose.
      AGC controller uses PMU data to determine the Area Control Error (ACE). 
      ACE value is used to determine the setpoints of all the generators in the system.
   3. Cyber-attacks on PMU sensors
@@ -54,21 +54,21 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
      - Ramp
      - Step
      - Latency
-      - Packet drop
-      - Random
-  4. Power System Stabilizer (PSS) control
+     - Packet drop
+     - Random
+  4. Power System Stabilizer (PSS) control. 
 
 * **Instructions for Running Simulations:**
 
-  Run the matlab code 'GenerateTimeSeriesData.m'.
+  Run the matlab code 'GenerateTimeSeriesData.m' after choosing the user-defined parameters. 
 
 * **User-Defined Inputs:**
 
   1. SavePlots
-  2. Network: Choose the IEEE bus system: '9', '39', '68', '145' [Codes are now tuned for IEEE 68 bus system. For other bus systems, AGC needs to be tuned.]
-  3. agc_control : Indicate if AG control is enables; '1' enables AGC control; '0' disables AGC control
+  2. Network: Choose the IEEE bus system: '9', '39', '68', '145' [AGC is currently tuned for IEEE 68 bus system. For other bus systems, AGC needs to be tuned.]
+  3. agc_control : Indicate if AG control is enabled; '1' enables AGC control; '0' disables AGC control
   4. agc_time_step : Time interval in seconds between consecutive AGC control actions
-  5. pss_control : Indicate if PSS control is enables; '1' enables AGC control; '0' disables AGC control [This will also enable exciter control]
+  5. pss_control : Indicate if PSS control is enabled; '1' enables AGC control; '0' disables AGC control [This will also enable exciter control]
   6. num_area: The code can be run where AGC control is implemented assuming the network to have one or two distinct areas; '1' selects one area setup and '2' selects two area setup
   7. load_changes: Indicate if there are load changes; '1' enables load changes while '0' disables load changes
   8. TimeStep_of_simulation: Time step for simulation
@@ -76,23 +76,29 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
   10. PMU_SamplingFreq: Reporting rate for all PMUs in the system i.e. number of samples reported every second.
       Please provide a consistent time step - this helps in saving the data as PMU measurements or SCADA measurements 
   11. PMU_attack: Indicate if there is any cyber-attack on PMU; '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
-  12. AT: Select the type of cyner-attack to be implemented in the simulation run
+  12. AT: Select the type of cyber-attack to be implemented in the simulation run
       AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
       AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
       AttackTypes{3}: 'Ramp' attack (PMU measurement gradually modified over attack period
       AttackTypes{4}: 'Step' attack (PMU measurement scaled based on scaling factor)
       AttackTypes{5}: 'Poisoning' attack (PMU measurement are randomly corrupted by noise)
-  13. n_attacks_on_location: Number of bus locations with PMUs (selected from 'PMU_locations' array mentioned in data16m.m) where cyber-attack should be individually simulated in the form of a batch run.
-      PMU sensors location also has to be mentioned in the data file under the variable 'fmeas_con'.
-      SCADA locations have are mentioned in the variable 'Vmeas_con'. Required_SCADA_sampling_rate specifies the sampling rate needed for SCADA measurements (typically number of samples every 4 seconds)
-  14. n_fault_locations: Number of bus locations where fault will be implemented
-  15. n_fault_type: 
+  13. n_attack_scenarios: Number of scenarios with cyber-attacks to simulate
+  14. n_fault_locations: Number of fault scenarios (data with respect to each fault location will be saved as a single scenario)
+  15. n_fault_type: Number of fault-types (data with respect to each fault type will be saved as a single scenario)
       The event details are provided in the (matrix) variable 'sw_con' Details about the entries of 'sw_con' are provided as comments in GenerateTimeSeriesData.m
-  16. attack_magnitude_percent: Array of attack magnitudes in percentages; each value of attack magnitude in percent is implemented in a separated simulation in the form of a batch run
-  17. n_attacks_on_magnitude: Number of elements of the attack_magnitude_percent array to be simulated in batch run
-  18. attack.start_time_in_sec: Simulation time when the cyber-attack is initiated
-  19. attack.duration_in_sec: Duration during the simulation time when cyber-attack is active; for creating several different time windows 
-  20. Attack Characteristics for each of the attacks can be adjusted in the files attack_description.m and AttackAction.m
+   16. attack_magnitude_percent: Array of attack magnitudes in percentages; each value of attack magnitude in percent is implemented in a separated simulation in the form of a batch run 
+   17. n_attacks_on_magnitude: Number of elements of the attack_magnitude_percent array to be simulated in batch run
+   18. attack.start_time_in_sec: Simulation time when the cyber-attack is initiated
+   19. attack.duration_in_sec: Duration during the simulation time when cyber-attack is active; for creating several different time windows  
+   20. n_lc_scenarios: Number of scenarios with load changes 
+   21. n_lc_events_per_scenario: Number of load changes in single scenario 
+   22. n_loads_to_change: Number of load buses where load power is varied (Can be a pre-defined number of loads or can be a random number)
+   23. load_change_parameters.start_time: Give the start times for the load changes
+   24. load_change_parameters.end_time: Give the end times for the load changes (this variable can be empty which indicates the load changes are permanent-until the end of the simulation)
+   25. AttackLocation: buses that are to be attacked (number and location of buses can be randomly generated for batch runs) 
+      PMU sensor locations are mentioned in the data file under the variable 'fmeas_con'.
+      SCADA sensor locations are mentioned in the variable 'Vmeas_con'. Required_SCADA_sampling_rate specifies the sampling rate needed for SCADA measurements (typically number of samples every 4 seconds)  
+   26. Attack Characteristics for each of the attacks can be adjusted in the files attack_description.m and AttackAction.m
 
 * **Outputs:**
 
@@ -101,26 +107,27 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
   3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) inside the Scenario folder itself. 
 
   Output Data files: (.mat files)
-  PMUData:
+  
+  PMUData.mat:
   Voltage magnitudes and angles, current magnitude and angles, frequency and frequency rate at bus where PMU is located. 
   'fmeas_con' in data file contains the PMU locations. PMU data is collected at high frequency rate. 
 
-  Data Organization: PMU data is stored with respect to specified time windows (user can choose the number of time windows and it is assumed that the length of each time window is same ) 
-  Data file format : PMUData_STARTTIME_ENDTIME.mat STARTTIME, ENDTIME in seconds Data file contents: tw_PMU struct with fields:
+  Data Organization: PMU data is stored with respect to the specified time windows (user can choose the number of time windows and it is assumed that the length of each time window is same ) 
 
   ```
-     Vm: [240x39 double] -- voltage magnitudes (pu)
-     Va: [240x39 double] -- voltage angles (degrees)
-     Im: {1x39 cell} -- current magnitudes (in lines connecting)
-     Ia: {1x39 cell} -- current angles (in lines connecting)
-     Id: {1x39 cell} -- contains the description about branches connecting the given bus TimeStamps -- time stamps for the data fmeas_con -- PMU locations Vmeas_con -- SCADA sensor locations
-      f: [239x39 double] -- frequency (Hz)
-   fdot: [238x39 double] -- frequency rate (Hz/sec)
+            Vm: [3000×68 double] -- voltage magnitudes (pu)
+            Va: [3000×68 double] -- voltage angles (degrees)
+             f: [3000×68 double] -- frequency (Hz)
+          fdot: [2999×68 double] -- frequency rate (Hz/sec)
+            Im: {1×68 cell}      -- current magnitudes (in lines connecting bus i)
+            Ia: {1×68 cell}      -- current angles (in lines connecting bus i)
+            Id: {1×68 cell}      -- contains the description about branches connecting the bus i
+    TimeStamps: [3000×1 double]  -- time stamps for the data 
+              fmeas_con          -- PMU sensor locations  
+              Vmeas_con          -- SCADA sensor locations    
   ```
 
    SCADAData, MetricData, ACEData
 
   Real, reactive power and voltage magnitude at a reporting rate of once every 2 sec
-
-  'Vmeas_con' in data file contains the locations for taking SCADA measurements 
 
