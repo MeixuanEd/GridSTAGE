@@ -104,13 +104,14 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 
   1. Time-series data corresponding to the entire network and with respect to an event can be generated based on nonlinear time-domain simulations. 
   2. Based on the specified PMU locations, synthesized PMU data is created and stored appropriately into the scenario folder under the 'Results' directory. 
-  3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) inside the Scenario folder itself. 
+  3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) and CSV file (ScenarioDescription.csv) inside the Scenario folder itself. 
 
 * **Output Data files: (.mat files)**
   
   **PMUData.mat:**
   Voltage magnitudes and angles, current magnitude and angles, frequency and frequency rate at bus where PMU is located. 
-  'fmeas_con' in data file contains the PMU locations. PMU data is collected at high frequency rate. 
+  'fmeas_con' specified in the data file contains the PMU locations. PMU data is collected at high frequency rate. 
+  Time step of the simulation and attack locations are also stored under the PMUData. 
 
   Data Organization: PMU data is stored with respect to the specified time windows (user can choose the number of time windows and it is assumed that the length of each time window is same ) 
 
@@ -123,11 +124,24 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
             Ia: {1×68 cell}      -- current angles (in lines connecting bus i)
             Id: {1×68 cell}      -- contains the description about branches connecting the bus i
     TimeStamps: [3000×1 double]  -- time stamps for the data 
-              fmeas_con          -- PMU sensor locations  
-              Vmeas_con          -- SCADA sensor locations    
+    
+              fmeas_con          -- PMU sensor locations      
   ```
 
-   SCADAData, MetricData, ACEData
-
-  Real, reactive power and voltage magnitude at a reporting rate of once every 2 sec
+  **SCADAData.mat:**
+  Real, reactive power and voltage magnitude at a reporting rate of once every 2 sec or the time window specified by the user. 
+  'Vmeas_con' specified in the data file contains the SCADA locations. 
+  
+  Data Organization: 
+  
+  ```
+             Vm: [3000×68 double] -- voltage magnitudes (pu)
+              P: {1×68 cell}      -- real powers (in lines connecting bus i)
+              Q: {1×68 cell}      -- reactive powers (in lines connecting bus i)
+              d: {1×68 cell}      -- contains the description about branches connecting the bus i
+              
+               Vmeas_con          -- SCADA sensor locations
+  ```
+  
+   MetricData, ACEData
 
