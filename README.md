@@ -152,11 +152,3 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
                        ACE_data.k  -- discrete time step indicating the time step at which where AGC has acted 
                            tg_sig  -- turbine governor setpoints                       
    ```
-
-    **MetricData.mat:** 
-    Consider the difference between the PMU and SCADA datasets whereever the SCADA measurements are available and take their various euclidean norms such as 1-norm, 2-norm, Inf-norm. Real power of each branch from the PMU data are identified and compared against SCADA real power measurements (user can choose voltage magnitude as well to compute the metrics).
-    
-    ```
-         PMU_SCADA_difference_norm -- gives 1-norm, 2-norm, Inf-norm values of the difference of PMU and SCADA measurements at every bus
-    ```
-
