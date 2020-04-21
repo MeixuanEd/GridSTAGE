@@ -152,3 +152,30 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
                        ACE_data.k  -- discrete time step indicating the time step at which where AGC has acted 
                            tg_sig  -- turbine governor setpoints                       
    ```
+
+** Citation
+Please refer to the following works:
+1. Joe H. Chow, and Kwok W. Cheung. "A toolbox for power system dynamics and control engineering education and research." IEEE transactions on Power Systems 7, no. 4 (1992): 1559-1564.
+2. Jiangmeng Zhang, and Alejandro D. Domínguez-García. "Augmenting the power system toolbox: Enabling automatic generation control and providing a platform for cyber security analysis." In 2016 North American Power Symposium (NAPS), pp. 1-5. IEEE, 2016.
+
+```
+@inproceedings{zhang2016augmenting,
+  title={Augmenting the power system toolbox: Enabling automatic generation control and providing a platform for cyber security analysis},
+  author={Zhang, Jiangmeng and Dom{\'\i}nguez-Garc{\'\i}a, Alejandro D},
+  booktitle={2016 North American Power Symposium (NAPS)},
+  pages={1--5},
+  year={2016},
+  organization={IEEE}
+}
+
+@article{chow1992toolbox,
+  title={A toolbox for power system dynamics and control engineering education and research},
+  author={Chow, Joe H and Cheung, Kwok W},
+  journal={IEEE transactions on Power Systems},
+  volume={7},
+  number={4},
+  pages={1559--1564},
+  year={1992},
+  publisher={IEEE}
+}
+```
