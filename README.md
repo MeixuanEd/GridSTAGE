@@ -106,9 +106,9 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
   2. Based on the specified PMU locations, synthesized PMU data is created and stored appropriately into the scenario folder under the 'Results' directory. 
   3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) inside the Scenario folder itself. 
 
-  Output Data files: (.mat files)
+* **Output Data files: (.mat files)**
   
-  PMUData.mat:
+  **PMUData.mat:**
   Voltage magnitudes and angles, current magnitude and angles, frequency and frequency rate at bus where PMU is located. 
   'fmeas_con' in data file contains the PMU locations. PMU data is collected at high frequency rate. 
 
