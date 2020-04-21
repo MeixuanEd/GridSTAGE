@@ -62,7 +62,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 
   Run the matlab code 'GenerateTimeSeriesData.m' after choosing the user-defined parameters. 
 
-* **User-Defined Inputs:**
+## **User-Defined Inputs:**
 
   1. SavePlots
   2. Network: Choose the IEEE bus system: '9', '39', '68', '145' [AGC is currently tuned for IEEE 68 bus system. For other bus systems, AGC needs to be tuned.]
@@ -100,13 +100,13 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
       SCADA sensor locations are mentioned in the variable 'Vmeas_con'. Required_SCADA_sampling_rate specifies the sampling rate needed for SCADA measurements (typically number of samples every 4 seconds)  
    26. Attack Characteristics for each of the attacks can be adjusted in the files attack_description.m and AttackAction.m
 
-* **Outputs:**
+## **Outputs:**
 
   1. Time-series data corresponding to the entire network and with respect to an event can be generated based on nonlinear time-domain simulations. 
   2. Based on the specified PMU locations, synthesized PMU data is created and stored appropriately into the scenario folder under the 'Results' directory. 
   3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) and CSV file (ScenarioDescription.csv) inside the Scenario folder itself. 
 
-* **Output Data files: (.mat files)**
+## **Output Data files: (.mat files)**
   
   **PMUData.mat:**
   Voltage magnitudes and angles, current magnitude and angles, frequency and frequency rate at bus where PMU is located. 
