@@ -155,7 +155,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 
 ## **Citation**
 
-Please refer to the following works:
+As our simulation framework is based on PST and the AGC code developed by Jiangmeng Zhang, please refer to the following works:
 1. Joe H. Chow, and Kwok W. Cheung. "A toolbox for power system dynamics and control engineering education and research." IEEE transactions on Power Systems 7, no. 4 (1992): 1559-1564.
 2. Jiangmeng Zhang, and Alejandro D. Domínguez-García. "Augmenting the power system toolbox: Enabling automatic generation control and providing a platform for cyber security analysis." In 2016 North American Power Symposium (NAPS), pp. 1-5. IEEE, 2016.
 
