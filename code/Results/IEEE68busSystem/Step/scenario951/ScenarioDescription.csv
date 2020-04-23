@@ -1,0 +1,2 @@
+Normal,Fault,Attack presence,Attack type,Attack location,AGC,PSS,Attack start time (sec),Attack duration (sec),Attack end time (sec),Attack amplitude (%),Fault location,Fault type
+0,0,1,Step,36  10   2,1,1,15,5,20,1,,no fault
