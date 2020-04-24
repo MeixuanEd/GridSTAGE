@@ -103,7 +103,7 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
 ## **Outputs:**
 
   1. Time-series data corresponding to the entire network and with respect to an event can be generated based on nonlinear time-domain simulations. 
-  2. Based on the specified PMU locations, synthesized PMU data is created and stored appropriately into the scenario folder under the 'Results' directory. 
+  2. Based on the specified PMU locations, synthesized PMU data is created and stored appropriately into the scenario folder under the 'Results' directory (each batch run creates a separate Scenario# folder).  
   3. Each Scenario information is also stored in a separate text file (ScenarioDescription.txt) and CSV file (ScenarioDescription.csv) inside the Scenario folder itself. 
 
 ## **Output Data files: (.mat files)**
