@@ -153,7 +153,8 @@ We are developing a simulation framework called "GridSTAGE (<u>Grid</u>: <u>S</u
                            tg_sig  -- turbine governor setpoints                       
    ```
    
-   **Pre-generated datasets**
+   **Pre-generated datasets:**
+   
    Several scenarios corresponding to attacks and load changes for the IEEE 68 bus system can be found in /code/Results/IEEE68busSystem/
       
 
