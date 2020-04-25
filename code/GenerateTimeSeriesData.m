@@ -47,9 +47,9 @@ PMU_SamplingFreq  = 50; % Measurements every second
 % -------------------------------------------------------------------------
 
 % Attack Parameters
-PMU_attack = 0; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
+PMU_attack = 1; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
 AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning'};
-AT = AttackTypes{5};
+AT = AttackTypes{4};
 % Cyber-attack is to be introduced in PMU sensors at attack location bus
 % AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
 % AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
@@ -87,19 +87,19 @@ n_fault_type = 1;
 n_attacks_on_magnitude = 1; % Should be less than max(size(attack_magnitudes_percent))
 % Below select number of attacks on attack duration
 % (data corresponding to each attack duration value will be saved as a scenario)
-n_attacks_on_duration_of_attack = 1;
+n_attacks_on_duration_of_attack = 3;
 % Mention the start time for the attack in seconds or make it a random
 % variable
 attack.start_time_in_sec = 20; % randi(round(0.8*simParams.simTime),1,1);
 % Mention the attack duration for the attack in seconds
-attack_durations = linspace(25,25,n_attacks_on_duration_of_attack);
+attack_durations = linspace(5,25,n_attacks_on_duration_of_attack);
 % Number of load change scenarios
-n_lc_scenarios = 10; % Number of load changes (== # num of scenarios corresponding to the load changes)
+n_lc_scenarios = 1; % Number of load changes (== # num of scenarios corresponding to the load changes)
 n_lc_events_per_scenario = 2; % Number of load changes in single scenario
 % How many loads needs to change their nominal value during the simulation?
 % Can be a pre-defined number of loads or can be a random number
 n_loads_to_change = 2; % randi(10);
-n_lc_scen = 20;
+n_lc_scen = 1;
 %--------------------------------------------------------------------------
 Initialization
 %--------------------------------------------------------------------------
