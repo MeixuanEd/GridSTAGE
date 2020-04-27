@@ -1,6 +1,7 @@
 % Author: Sai Pushpak Nandanoori (uses PST)
 % Date created: October 22, 2019
-% Last updated: April 8, 2020 by Seemita Pal and Sai Pushpak
+% Updated: April 8, 2020 by Seemita Pal
+% updated: April 27, 2020 by Sai Pushpak
 %--------------------------------------------------------------------------
 % Main code follows from here
 clearvars; clear global; close all; % clc;
@@ -48,15 +49,17 @@ PMU_SamplingFreq  = 50; % Measurements every second
 
 % Attack Parameters
 PMU_attack = 1; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
-AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning'};
-AT = AttackTypes{4};
+AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning','Trapezoid'};
+AT = AttackTypes{3};
 % Cyber-attack is to be introduced in PMU sensors at attack location bus
 % AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
 % AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
 % AttackTypes{3}: 'Ramp' attack (PMU measurement gradually modified over attack period
 % AttackTypes{4}: 'Step' attack (PMU measurement scaled based on scaling factor)
 % AttackTypes{5}: 'Poisoning' attack (PMU measurement are randomly corrupted
-% by noise [noise parameters are picked from a Gaussian distribution])
+% AttackTypes{6}: 'Trapezoid' attack (PMU measurement are gradually
+% increased, kept on hold and gradually decreased or viceversa
+% For Poisoning attack noise parameters are picked from a Gaussian distribution
 %%%%% the below attack characteristics get activated only if PMU_attack==1
 % Predefine the mean and variance for data poisioning
 data_poison.mean = 0.0;
@@ -73,7 +76,7 @@ attack_magnitudes_percent = [0.03 0.1 0.2;
     0.04 0.1 0.2;
     0.05 0.1 0.2;
     0.02 0.1 0.2]; % Attack magnitudes
-attack_magnitudes_percent(:,1) = 0.03;
+attack_magnitudes_percent(:,1) = 0.07;
 %--------------------------------------------------------------------------
 
 % Multiple scenario generation parameters
@@ -87,12 +90,12 @@ n_fault_type = 1;
 n_attacks_on_magnitude = 1; % Should be less than max(size(attack_magnitudes_percent))
 % Below select number of attacks on attack duration
 % (data corresponding to each attack duration value will be saved as a scenario)
-n_attacks_on_duration_of_attack = 3;
+n_attacks_on_duration_of_attack = 2;
 % Mention the start time for the attack in seconds or make it a random
 % variable
 attack.start_time_in_sec = 20; % randi(round(0.8*simParams.simTime),1,1);
 % Mention the attack duration for the attack in seconds
-attack_durations = linspace(5,25,n_attacks_on_duration_of_attack);
+attack_durations = linspace(15,25,n_attacks_on_duration_of_attack);
 % Number of load change scenarios
 n_lc_scenarios = 1; % Number of load changes (== # num of scenarios corresponding to the load changes)
 n_lc_events_per_scenario = 2; % Number of load changes in single scenario
@@ -132,7 +135,7 @@ for i_lc_scen = 1:n_lc_scen
         % %% load changes are temporary: end_time variable is nonempty
         load_change_parameters.end_time   = []; % load_change_parameters.start_time + 0.01;
         
-        amount_of_load_change_per_scen = amount_of_load_change(:,(i_load_changes-1)*n_lc_events_per_scenario+1:i_load_changes*n_lc_events_per_scenario);
+        amount_of_load_change_per_scen = 0.8*amount_of_load_change(:,(i_load_changes-1)*n_lc_events_per_scenario+1:i_load_changes*n_lc_events_per_scenario);
         % load changes -- based on random choice
         % amount_of_load_change = ...
         % 1*rand(num_loads_to_change,1).*randn(num_loads_to_change,1);
@@ -194,7 +197,7 @@ for i_lc_scen = 1:n_lc_scen
                 for i_attack_location = 1:n_attack_scenarios
                     % Mention the attack buses
                     % This can be random buses or user can define these!
-                    AttackLocation = [4 38 47 57]; % randperm(length(PMU_locations),i_attack_location);
+                    AttackLocation = [66 32 52 37]; % [4 38 47 57]; % randperm(length(PMU_locations),i_attack_location);
                     for i_attack_duration = 1:n_attacks_on_duration_of_attack
                         % Calculate end time of attack in seconds
                         attack.duration_in_sec = attack_durations(i_attack_duration);
@@ -249,7 +252,7 @@ for i_lc_scen = 1:n_lc_scen
                                     FigureFile = sprintf('%s/ACE',scenDir);
                                     saveas(ace_plot,FigureFile,'jpg')
                                 end
-                                close all
+                                % close all
                             end
                             save(sprintf('%s/PMUData.mat',scenDir), 'PMU','PMU_SamplingFreq','SimulationTime', 'fmeas_con', 'TimeStep_of_simulation', 'AttackLocation', 't', 'PMU_samples', 'pelect');
                             save(sprintf('%s/SCADAData.mat',scenDir), 'SCADA','Required_NumofMeasEvery2Seconds_SCADA','SimulationTime','Vmeas_con');
