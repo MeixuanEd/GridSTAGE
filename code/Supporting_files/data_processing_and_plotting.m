@@ -50,7 +50,7 @@ for i_bus = 1:n_bus
         if save_PMU_P_and_Q 
             jay = sqrt(-1);
             % ComplexCurrent = PMU.Im{i_bus} + jay*PMU.Ia{i_bus};
-            [I_real, I_imag]  = pol2cart(PMU.Ia{i_bus}, PMU.Im{i_bus});
+            [I_real, I_imag] = pol2cart(PMU.Ia{i_bus}, PMU.Im{i_bus});
             [V_real, V_imag] = pol2cart(deg2rad(PMU.Va(:,i_bus)),PMU.Vm(:,i_bus));
             ComplexCurrent = I_real + jay*I_imag;
             ComplexVoltage = V_real + jay*V_imag;
@@ -230,7 +230,7 @@ ylabel('Frequency [Hz]');
 %% PMU Voltage Magnitude and Angle plots
 voltage_plot = figure;
 subplot(2,1,1)
-plot(t(PMU_samples),PMU.Vm(:,PMU_locations), 'LineWidth',2)
+plot(t(PMU_samples),PMU.Vm(:, PMU_locations), 'LineWidth',2)
 xlabel('time [s]')
 ylabel('Vm [pu]')
 subplot(2,1,2)

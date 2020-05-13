@@ -12,8 +12,8 @@ global fmeas_con busDeltaAngle busDeltaFreqPU dBusDeltaFreqPU busFreq
 global load_changes simParams PMU_SamplingFreq dbusFreq
 global PMU_locations PMU_samples PMU_samples_f PMU_samples_fdot AttackTypes PMU_attack
 global AttackLocation AttackVector PMU SCADA PMU_SCADA_Difference
-global SCADA_locations SCADA_samples SCADA_row_location
-global attack AT BernoulliProcess NewTimes count2
+global SCADA_locations SCADA_samples SCADA_row_location Freezing 
+global attack AT BernoulliProcess NewTimes count2 Trapezoid
 global amount_of_load_change_per_scen loads_undergoing_change_sorted 
 % =====================================================================================
 
@@ -89,31 +89,8 @@ end
 % =========================================================================
 % Attack modeling for PMU data to explore effects on AGC control
 if PMU_attack
-    switch AT
-        case 'Ramp'
-            AttackAction
-            
-        case 'Step'
-            AttackAction
-            
-        case 'PacketDrop'
-            row_location = find(PMU_samples == k, 1);
-            PMU.Vm(row_location, AttackLocation) = PMU.Vm(row_location,AttackLocation).*BernoulliProcess(row_location);
-            PMU.Va(row_location, AttackLocation) = PMU.Va(row_location,AttackLocation).*BernoulliProcess(row_location);
-            row_location = find(PMU_samples_f == k, 1);
-            PMU.f(row_location, AttackLocation)  = PMU.f(row_location,AttackLocation).*BernoulliProcess(row_location);
-            row_location = find(PMU_samples_fdot == k, 1);
-            PMU.fdot(row_location, AttackLocation)  = PMU.fdot(row_location,AttackLocation).*BernoulliProcess(row_location);
-            
-        case 'Latency'
-            row_location = find(PMU_samples == k, 1);
-            PMU.Vm(NewTimes(row_location), AttackLocation) = PMU.Vm(row_location,AttackLocation);
-            PMU.Vm(row_location:NewTimes(row_location),AttackLocation) = zeros(length(row_location:NewTimes(row_location)), length(AttackLocation));
-            
-        case 'Poisoning'
-            AttackAction
-    end
-    
+    % disp('Attacking!')    
+    AttackAction                    
 end
 % =========================================================================
 lmod_sig(:,k)=zeros(n_lmod,1);

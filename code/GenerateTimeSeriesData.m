@@ -2,9 +2,11 @@
 % Date created: October 22, 2019
 % Updated: April 8, 2020 by Seemita Pal
 % updated: April 27, 2020 by Sai Pushpak
+% updated: May 12, 2020 by Sai Pushpak (added trapezoidal attacks 
+% and freezing attacks)
 %--------------------------------------------------------------------------
 % Main code follows from here
-clearvars; clear global; close all; % clc;
+clear all; clear global; close all; % clc;
 % PST_path = genpath('Matlab_PST'); % Provide filepath to Matlab PST folders
 % addpath(PST_path)
 SF_path = genpath('Supporting_files');
@@ -23,11 +25,11 @@ global agc_time_step agc_control gen_inputs load_changes num_area
 global ace1 ace2 S1_agcm S2_agcm area1_buses area2_buses
 global basmva simParams
 global PMU_locations PMU_samples PMU_samples_f PMU_samples_fdot
-global AttackLocation AttackVector
+global AttackLocation AttackVector Freezing
 global PMU SCADA n_PMU SCADA_row_location PMU_SCADA_Difference
 global SCADA_locations SCADA_samples
 global PMU_area1_locations PMU_area2_locations
-global ACE_data count count2
+global ACE_data count count2 Trapezoid TieLineScheduledPowers
 global PMU_SamplingFreq attack AttackTypes PMU_attack AT BernoulliProcess NewTimes
 % =========================================================================
 
@@ -43,14 +45,18 @@ pss_control = 0; % '1' enables PSS control; '0' disables PSS control
 num_area = 2; % 1- one area and 2 - two area
 load_changes = 1; % '1' enables load changes; '0' disables load changes
 TimeStep_of_simulation = 0.01; % in seconds
-SimulationTime = 60; % in seconds
+SimulationTime = 80; % in seconds
 PMU_SamplingFreq  = 50; % Measurements every second
 % -------------------------------------------------------------------------
 
 % Attack Parameters
 PMU_attack = 1; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
-AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning','Trapezoid'};
-AT = AttackTypes{3};
+AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning','Trapezoid','Freezing'};
+AT = AttackTypes{7};
+if ~PMU_attack 
+    AT = 'None';
+end
+    
 % Cyber-attack is to be introduced in PMU sensors at attack location bus
 % AttackTypes{1}: 'Latency' attack (additional delays introduced  in PMU packet latencies)
 % AttackTypes{2}: 'PacketDrop' attack (unauthorized  dropping  of  PMU packets)
@@ -58,25 +64,41 @@ AT = AttackTypes{3};
 % AttackTypes{4}: 'Step' attack (PMU measurement scaled based on scaling factor)
 % AttackTypes{5}: 'Poisoning' attack (PMU measurement are randomly corrupted
 % AttackTypes{6}: 'Trapezoid' attack (PMU measurement are gradually
+% AttackTypes{7}: 'Freezing' attack (PMU measurements are hold constant at a certain value)
 % increased, kept on hold and gradually decreased or viceversa
 % For Poisoning attack noise parameters are picked from a Gaussian distribution
 %%%%% the below attack characteristics get activated only if PMU_attack==1
 % Predefine the mean and variance for data poisioning
-data_poison.mean = 0.0;
+poisoning.mean = 0.0;
 % Rows    - attack location
 % Columns - indicate scenario's
-data_poison.var  = [0.005;
+poisoning.var  = [0.005;
     0.006;
     0.005;
     0.008];
 % Predefined set of attack magnitude percentages to be simulated
 % Rows    - attack location
 % Columns - indicate scenario's
-attack_magnitudes_percent = [0.03 0.1 0.2;
-    0.04 0.1 0.2;
-    0.05 0.1 0.2;
-    0.02 0.1 0.2]; % Attack magnitudes
-attack_magnitudes_percent(:,1) = 0.07;
+attack_magnitudes_percent = [0.8; 0.9; 1; 1.2]; % Attack magnitudes
+% attack_magnitudes_percent(:,1) = 0.07;
+% define the trapezoidal attack characteristics
+% attack_durations defined below doesn't come into existence for
+% Trapezoidal attacks 
+Trapezoid.initial_slope     = 10; % sec
+Trapezoid.intermediate_step = 10; % sec
+Trapezoid.final_slope       = 10; % sec
+% Below give attack magnitudes in %
+% Rows    : number of attack locations
+% Columns : number of scenarios
+Trapezoid.initial_attack_magnitude       = [0.03; 0.04; 0.05; 0.06]*10;
+Trapezoid.final_attack_magnitude         = [0.03; 0.04; 0.05; 0.06]*10;
+Trapezoid.intermediate_attack_magnitude  = [0.03; 0.04; 0.05; 0.06]*10;
+% Freezing attack characteristics
+% PMU value at this time point is used during the attack  
+Freezing.time_point = 38/TimeStep_of_simulation/2;
+% Which state the attacker needs to freeze? 
+% 'Frequency', 'Voltage', 'Angle'
+Freezing.states     = ["Voltage"; "Angle"];
 %--------------------------------------------------------------------------
 
 % Multiple scenario generation parameters
@@ -90,10 +112,10 @@ n_fault_type = 1;
 n_attacks_on_magnitude = 1; % Should be less than max(size(attack_magnitudes_percent))
 % Below select number of attacks on attack duration
 % (data corresponding to each attack duration value will be saved as a scenario)
-n_attacks_on_duration_of_attack = 2;
+n_attacks_on_duration_of_attack = 1;
 % Mention the start time for the attack in seconds or make it a random
 % variable
-attack.start_time_in_sec = 20; % randi(round(0.8*simParams.simTime),1,1);
+attack.start_time_in_sec = 39; % randi(round(0.8*simParams.simTime),1,1);
 % Mention the attack duration for the attack in seconds
 attack_durations = linspace(15,25,n_attacks_on_duration_of_attack);
 % Number of load change scenarios
@@ -101,8 +123,9 @@ n_lc_scenarios = 1; % Number of load changes (== # num of scenarios correspondin
 n_lc_events_per_scenario = 2; % Number of load changes in single scenario
 % How many loads needs to change their nominal value during the simulation?
 % Can be a pre-defined number of loads or can be a random number
-n_loads_to_change = 2; % randi(10);
+n_loads_to_change = 1; % randi(10);
 n_lc_scen = 1;
+
 %--------------------------------------------------------------------------
 Initialization
 %--------------------------------------------------------------------------
@@ -111,7 +134,7 @@ for i_lc_scen = 1:n_lc_scen
     % Determine the buses at which load changes needs to happen
     % Below, the load change buses are picked randomly (user can mention the
     % load bus numbers without making them a random number)
-    loads_undergoing_change = randsample(load_locations, n_loads_to_change);
+    loads_undergoing_change = 23; % randsample(load_locations, n_loads_to_change);
     tmp_lvs = nominal_load_values(loads_undergoing_change);
     loads_undergoing_change_sorted = zeros(n_loads_to_change,1);
     
@@ -135,7 +158,7 @@ for i_lc_scen = 1:n_lc_scen
         % %% load changes are temporary: end_time variable is nonempty
         load_change_parameters.end_time   = []; % load_change_parameters.start_time + 0.01;
         
-        amount_of_load_change_per_scen = 0.8*amount_of_load_change(:,(i_load_changes-1)*n_lc_events_per_scenario+1:i_load_changes*n_lc_events_per_scenario);
+        amount_of_load_change_per_scen = amount_of_load_change(:,(i_load_changes-1)*n_lc_events_per_scenario+1:i_load_changes*n_lc_events_per_scenario);
         % load changes -- based on random choice
         % amount_of_load_change = ...
         % 1*rand(num_loads_to_change,1).*randn(num_loads_to_change,1);
@@ -197,20 +220,31 @@ for i_lc_scen = 1:n_lc_scen
                 for i_attack_location = 1:n_attack_scenarios
                     % Mention the attack buses
                     % This can be random buses or user can define these!
-                    AttackLocation = [66 32 52 37]; % [4 38 47 57]; % randperm(length(PMU_locations),i_attack_location);
+                    AttackLocation = [66 1 52 9]; % [4 38 47 57]; % randperm(length(PMU_locations),i_attack_location);
                     for i_attack_duration = 1:n_attacks_on_duration_of_attack
                         % Calculate end time of attack in seconds
                         attack.duration_in_sec = attack_durations(i_attack_duration);
-                        attack.end_time_in_sec = attack.start_time_in_sec + attack.duration_in_sec;
+                        if strcmp(AT, 'Ramp') || strcmp(AT, 'Step') || strcmp(AT, 'Posioning') || strcmp(AT, 'Freezing')
+                            attack.end_time_in_sec = attack.start_time_in_sec + attack.duration_in_sec;    
+                        elseif strcmp(AT, 'Trapezoid')
+                            attack.end_time_in_sec = attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step + Trapezoid.final_slope;
+                        end
                         
                         for i_attack_magnitude = 1:n_attacks_on_magnitude
-                            attack.max_mod_frac = 1 + (attack_magnitudes_percent(:,i_attack_magnitude)/100);
+                            if strcmp(AT, 'Ramp') || strcmp(AT, 'Step') || strcmp(AT, 'Posioning')
+                                attack.max_mod_frac = 1 + (attack_magnitudes_percent(:,i_attack_magnitude))/100;
+                            elseif strcmp(AT, 'Trapezoid')
+                                attack.initial_max_mod_frac      = 1 + (Trapezoid.initial_attack_magnitude(:,i_attack_magnitude))/100;
+                                attack.intermediate_max_mod_frac = 1 + (Trapezoid.intermediate_attack_magnitude(:,i_attack_magnitude))/100;
+                                attack.final_max_mod_frac        = 1 + (Trapezoid.final_attack_magnitude(:,i_attack_magnitude))/100;                                
+                            end 
                             tic
                             if num_area == 1
                                 % ACE_data.ACE = [];
                                 ACE_data.k = []; ACE_data.myACE = [];
                             elseif num_area == 2
                                 % ACE_data.ACE1 = []; ACE_data.ACE2 = [];
+                                ACE_data.tielinedifferences = [];
                                 ACE_data.myACE1 = []; ACE_data.myACE2 = [];  ACE_data.k = [];
                             end
                             scenIdx_local = scenIdx_local+1;
@@ -218,15 +252,29 @@ for i_lc_scen = 1:n_lc_scen
                             attack_description
                             %----------------------------------------------------------
                             scenario_description
+                            %------------------------------------------------------------------------
+                            load('Results/IEEE68busSystem/scheduled_tie_powers.mat')
+                            % assuming [Buses 1-2; Buses 1-27; Buses 9-8]
+                            % for IEEE 68 bus system 
+                            TieLineScheduledPowers  = [P_1_2_scheduled; P_1_27_scheduled; -P_8_9_scheduled];
                             %----------------------------------------------------------
                             if PMU_attack
                                 fprintf('[INFO] Attack locations: Buses %d \n', AttackLocation)
                                 if strcmp(AT,'Ramp') || strcmp(AT,'Step')
-                                    fprintf('[INFO] Attack magnitudes in percentages: %0.2f%% \n',attack_magnitudes_percent(:,i_attack_magnitude))
+                                    fprintf('[INFO] Attack magnitudes in percentages: %0.2f%% \n',attack_magnitudes_percent(:,i_attack_magnitude))                                    
                                 elseif strcmp(AT,'Poisoning')
-                                    fprintf('[INFO] Variance of attack: %0.4f%% \n', data_poison.var)
-                                    fprintf('[INFO] Mean of attack: %0.4f%% \n', data_poison.mean)
+                                    fprintf('[INFO] Variance of attack: %0.4f%% \n', poisoning.var)
+                                    fprintf('[INFO] Mean of attack: %0.4f%% \n', poisoning.mean)
                                 end
+                                if strcmp(AT, 'Ramp') || strcmp(AT, 'Step') || strcmp(AT, 'Posioning')
+                                    fprintf('[INFO] Start time of attack (sec): %0.1f\n', attack.start_time_in_sec)
+                                    fprintf('[INFO] End time of attack (sec): %0.1f\n', attack.end_time_in_sec)
+                                elseif strcmp(AT, 'Trapezoid')
+                                    fprintf('[INFO] Increasing ramp attack start time (sec): %0.1f\n', attack.start_time_in_sec)
+                                    fprintf('[INFO] Intermediate step attack start time (sec): %0.1f\n', attack.start_time_in_sec + Trapezoid.initial_slope)
+                                    fprintf('[INFO] Decreasing ramp attack start time (sec): %0.1f\n', attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step )
+                                    fprintf('[INFO] Overall attack end time (sec): %0.1f\n', attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step + Trapezoid.final_slope)
+                                end 
                             end
                             %----------------------------------------------------------
                             s_simu_PD % Main code running power flow and time-domain simulations
@@ -272,7 +320,7 @@ for i_lc_scen = 1:n_lc_scen
     end
 end
 % Convert to table format and write the table to a CSV file
-scenDes_full_table = cell2table(scenDes_full);
-writetable(scenDes_full_table,sprintf('%s/FullScenarioData.csv',ResDir),'WriteVariableNames',0)
+% scenDes_full_table = cell2table(scenDes_full);
+% writetable(scenDes_full_table,sprintf('%s/FullScenarioData.csv',ResDir),'WriteVariableNames',0)
 fprintf('\n All the data is saved and the simulation is complete now.\n')
 %--------------------------------------------------------------------------

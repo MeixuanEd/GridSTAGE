@@ -114,17 +114,14 @@ scenDes{1,9}  = 'Attack type';
 scenDes{1,10} = 'Attack start time (sec)';
 scenDes{1,11} = 'Attack end time (sec)';
 scenDes{1,12} = 'Attack duration (sec)';
-scenDes{1,13} = 'Attack amplitude (%)';
+if strcmp(AT, 'Freezing')   
+    scenDes{1,13} = 'Time point frozen'; 
+else
+    scenDes{1,13} = 'Attack amplitude (%)';
+end
 
 scenDes{1,14} = 'Location(s) of load changes';
-switch AT
-        case 'Ramp'
-            scenDes{1,15} = 'Magnitude(s) of load changes';
-        case 'Step' 
-            scenDes{1,15} = 'Magnitude(s) of load changes';
-        case 'Posioning'
-            scenDes{1,15} = 'Variance(s) of load changes';
-end
+scenDes{1,15} = 'Magnitude(s) of load changes';
 scenDes{1,16} = 'Start time(s) for load changes';
 scenDes{1,17} = 'End time(s) for load changes';
 

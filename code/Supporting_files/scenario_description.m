@@ -45,7 +45,9 @@ if PMU_attack
     fprintf(fileID, sprintf('PMU attack: YES\n')); 
     fprintf(fileID, sprintf('Type of attack: %s \n', AT)); 
     fprintf(fileID, sprintf('Attack Location: Buses %d, %d \n',AttackLocation)); 
-    fprintf(fileID, sprintf('Start and end time of attack: %0.2f  %0.2f seconds\n',attack.start_time_in_sec,attack.end_time_in_sec)); 
+    if ~strcmp(AT, 'Trapezoid')
+        fprintf(fileID, sprintf('Start and end time of attack: %0.2f -- %0.2f seconds\n',attack.start_time_in_sec,attack.end_time_in_sec));   
+    end 
     switch AT
         case 'Ramp'
             fprintf(fileID, sprintf('Attack magnitude (Percentage of deviation): %0.2f%% \n \n \n',(attack.max_mod_frac-1)*100));
@@ -54,6 +56,17 @@ if PMU_attack
         case 'Posioning'
             fprintf(fileID, sprintf('Attack magnitude (variance of disturbance): %0.2f%% \n \n \n',data_poison.var));
             fprintf(fileID, sprintf('Attack magnitude (Mean of disturbance): %0.2f%% \n \n \n',data_poison.mean));
+        case 'Trapezoid'
+            fprintf(fileID, sprintf('Increasing ramp attack start and end time: %0.2f -- %0.2f seconds\n', attack.start_time_in_sec, attack.start_time_in_sec + Trapezoid.initial_slope));
+            fprintf(fileID, sprintf('Step attack start and end time: %0.2f -- %0.2f seconds\n', attack.start_time_in_sec + Trapezoid.initial_slope, attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step));
+            fprintf(fileID, sprintf('Decreasing ramp attack start and end time: %0.2f -- %0.2f seconds\n', attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step , attack.start_time_in_sec + Trapezoid.initial_slope + Trapezoid.intermediate_step + Trapezoid.final_slope));
+    
+            fprintf(fileID, sprintf('Increasing ramp attack magnitudes: %0.2f \n\n\n', Trapezoid.initial_attack_magnitude));
+            fprintf(fileID, sprintf('Step attack magnitudes: %0.2f \n\n\n', Trapezoid.intermediate_attack_magnitude));
+            fprintf(fileID, sprintf('Decreasing ramp attack magnitudes: %0.2f \n\n\n', Trapezoid.final_attack_magnitude));
+        case 'Freezing'
+            fprintf(fileID, sprintf('Frozen attack uses the state value at time point: %0.2f \n',(Freezing.time_point)*2*TimeStep_of_simulation));
+            fprintf(fileID, sprintf('States frozen during the attack: %s \n', Freezing.states));
     end    
     
     fprintf(fileID, sprintf('\n \n \n'));
@@ -120,7 +133,9 @@ if PMU_attack
         case 'Step' 
             scenDes{2,13} = (attack.max_mod_frac-1)*100;    
         case 'Posioning'
-            scenDes{2,13} = data_poison.var;    
+            scenDes{2,13} = data_poison.var;   
+        case 'Freezing'
+            scenDes{2,13} = (Freezing.time_point)*2*TimeStep_of_simulation; 
     end
 else 
     scenDes{2,8}  = 'None';
