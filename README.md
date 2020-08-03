@@ -165,23 +165,12 @@ As our simulation framework is based on PST and the AGC code developed by Jiangm
 2. Jiangmeng Zhang, and Alejandro D. Domínguez-García. "Augmenting the power system toolbox: Enabling automatic generation control and providing a platform for cyber security analysis." In 2016 North American Power Symposium (NAPS), pp. 1-5. IEEE, 2016.
 
 ```
-@inproceedings{zhang2016augmenting,
-  title={Augmenting the power system toolbox: Enabling automatic generation control and providing a platform for cyber security analysis},
-  author={Zhang, Jiangmeng and Dom{\'\i}nguez-Garc{\'\i}a, Alejandro D},
-  booktitle={2016 North American Power Symposium (NAPS)},
-  pages={1--5},
-  year={2016},
-  organization={IEEE}
+@article{nandanoori2020model,
+  title={Model-Agnostic Algorithm for Real-Time Attack Identification in Power Grid using Koopman Modes},
+  author={Nandanoori, Sai Pushpak and Kundu, Soumya and Pal, Seemita and Agarwal, Khushbu and Choudhury, Sutanay},
+  journal={arXiv preprint arXiv:2007.11717},
+  year={2020}
 }
 
-@article{chow1992toolbox,
-  title={A toolbox for power system dynamics and control engineering education and research},
-  author={Chow, Joe H and Cheung, Kwok W},
-  journal={IEEE transactions on Power Systems},
-  volume={7},
-  number={4},
-  pages={1559--1564},
-  year={1992},
-  publisher={IEEE}
-}
+ 
 ```
