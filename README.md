@@ -168,7 +168,7 @@ As our simulation framework is based on PST and the AGC code developed by Jiangm
 @article{nandanoori2020model,
   title={Model-Agnostic Algorithm for Real-Time Attack Identification in Power Grid using Koopman Modes},
   author={Nandanoori, Sai Pushpak and Kundu, Soumya and Pal, Seemita and Agarwal, Khushbu and Choudhury, Sutanay},
-  journal={arXiv preprint arXiv:2007.11717},
+  journal={IEEE International Conference on Communications, Control, and Computing Technologies for Smart Grids.},
   year={2020}
 }
 
