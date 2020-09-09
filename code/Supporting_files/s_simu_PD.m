@@ -563,7 +563,8 @@ ktmax = k_tot-k_inc(lswitch);
 bus_sim = bus;
 plot_now = 0;
 
-while (kt<=ktmax)
+try 
+    while (kt<=ktmax)
    k_start = kt+1;
    if kt==ktmax
       k_end = kt + k_inc(ks);
@@ -740,6 +741,9 @@ while (kt<=ktmax)
       % Sai Pushpak Nandanoori - June 19, 2019 
       % mtg_sig(t(k),k);
       mtg_sig_PD(t(k),k);
+      if mod(t(k),5) == 0
+          fprintf('Simulation time: %0.1f seconds\n', t(k));
+      end 
       % =========================================================================
       tg(0,k,bus_sim,flag);
       tg_hydro(0,k,bus_sim,flag);
@@ -1111,14 +1115,23 @@ while (kt<=ktmax)
    end      
    kt = kt + k_inc(ks);
    ks = ks+1; 
+    end
+    
+    V1 = bus_v(bus_int(line(:,1)),:);
+    V2 = bus_v(bus_int(line(:,2)),:);
+    R = line(:,3); X = line(:,4); B = line(:,5);
+    tap = line(:,6); phi = line(:,7);
+    [ilf,ilt] = line_cur(V1,V2,R,X,B,tap,phi);%line currents
+catch e
+    % fprintf(1,'The identifier was:\n%s\n',e.identifier);
+    % fprintf(1,'There was an error! The message was:\n%s\n',e.message);
+    error(e.message)
+    V1 = bus_v(bus_int(line(:,1)),:);
+    V2 = bus_v(bus_int(line(:,2)),:);
+    R = line(:,3); X = line(:,4); B = line(:,5);
+    tap = line(:,6); phi = line(:,7);
+    [ilf,ilt] = line_cur(V1,V2,R,X,B,tap,phi);%line currents
 end
-
-V1 = bus_v(bus_int(line(:,1)),:);
-V2 = bus_v(bus_int(line(:,2)),:);
-R = line(:,3); X = line(:,4); B = line(:,5);
-tap = line(:,6); phi = line(:,7);
-[ilf,ilt] = line_cur(V1,V2,R,X,B,tap,phi);%line currents
-
 % =====================================================================================
 % Calculate the line power flows
 [fromBusPowInj, toBusPowInj] = line_pq(V1, V2, R, X, B, tap, phi);

@@ -3,7 +3,7 @@ function f = ml_sig_PD(t,k)
 %4:40 PM 15/08/97
 % defines modulation signal for lmod control
 global lmod_sig n_lmod
-
+% fprintf('(t,k) = (%0.3f,%d)\n',t,k);
 % =====================================================================================
 % For the load modulation case (Laurentiu Dan Marinovici - 2017/02/14)
 % global line basmva load_con
@@ -13,7 +13,7 @@ global load_changes simParams PMU_SamplingFreq dbusFreq
 global PMU_locations PMU_samples PMU_samples_f PMU_samples_fdot AttackTypes PMU_attack
 global AttackLocation AttackVector PMU SCADA PMU_SCADA_Difference
 global SCADA_locations SCADA_samples SCADA_row_location Freezing 
-global attack AT BernoulliProcess NewTimes count2 Trapezoid
+global attack AT BernoulliProcess NewTimes count2 Trapezoid n_loads_to_change
 global amount_of_load_change_per_scen loads_undergoing_change_sorted 
 % =====================================================================================
 
@@ -93,22 +93,27 @@ if PMU_attack
     AttackAction                    
 end
 % =========================================================================
+% disp('Inside ml_sig!')
 lmod_sig(:,k)=zeros(n_lmod,1);
 % start_time = 15.0;
 if n_lmod~=0
     lmod_sig(:,k)=zeros(n_lmod,1);
     %    lmod_sig(:,k) = 0.1*randn(n_lmod,1);
     if load_changes
-        for i_l = 1:n_lc_events_per_scenario            
-            if t >= load_change_parameters.start_time(i_l) 
-                lmod_sig(loads_undergoing_change_sorted,k) = amount_of_load_change_per_scen(:,i_l);
+%         disp('Inside Load Changes!')
+%         for i_l = 1:n_loads_to_change  
+%             fprintf('(t,k) = (%0.3f,%d)\n',t,k);
+%             temp_indx = find(t >= load_change_parameters.start_time);
+%             lmod_sig(loads_undergoing_change_sorted(temp_indx),k) = amount_of_load_change_per_scen(temp_indx);
+            if t >= load_change_parameters.start_time
+                lmod_sig(loads_undergoing_change_sorted,k) = amount_of_load_change_per_scen;
             end                         
             if ~isempty(load_change_parameters.end_time)
-                if t <= load_change_parameters.end_time(i_l)
+                if t <= load_change_parameters.end_time
                     lmod_sig(:,k)=zeros(n_lmod,1);
                 end
             end       
-        end  
+%         end  
     end
 end
 % =========================================================================

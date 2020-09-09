@@ -11,7 +11,7 @@ clear all; clear global; close all; % clc;
 % addpath(PST_path)
 SF_path = genpath('Supporting_files');
 addpath(SF_path)
-rng(700,'v5uniform') % The seeding can be changed for different batch runs
+rng(2343,'v5uniform') % The seeding can be changed for different batch runs
 % =========================================================================
 % For the load modulation case (Laurentiu Dan Marinovici - 2017/02/14)
 global h_sol TimeStep_of_simulation load_change_parameters n_lhc_samples n_lc_events_per_scenario
@@ -28,7 +28,7 @@ global PMU_locations PMU_samples PMU_samples_f PMU_samples_fdot
 global AttackLocation AttackVector Freezing
 global PMU SCADA n_PMU SCADA_row_location PMU_SCADA_Difference
 global SCADA_locations SCADA_samples
-global PMU_area1_locations PMU_area2_locations
+global PMU_area1_locations PMU_area2_locations n_loads_to_change
 global ACE_data count count2 Trapezoid TieLineScheduledPowers
 global PMU_SamplingFreq attack AttackTypes PMU_attack AT BernoulliProcess NewTimes
 % =========================================================================
@@ -36,21 +36,72 @@ global PMU_SamplingFreq attack AttackTypes PMU_attack AT BernoulliProcess NewTim
 % User-defined parameters:
 SavePlots = 1; % '1' for saving plots; '0' for not saving
 % -------------------------------------------------------------------------
+% Load topology data to pick strategic load locations and generate transient
+% data for power network
+load('Results/IEEE68busSystem/TopologyData.mat');
+% 'generator_size_ordering' % ascending order
+% 'inertia_ordering' % ascending order
+% 'load_locations_with_highest_degree'
+% 'load_locations_with_lowest_degree'
+% 'area1_loads' 
+% 'area2_loads' 
+G = graph(A); 
+load_locations = setdiff(load_locations,[37, 52]);
+
+buses_1_hop = [];
+buses_2_hop = [];
+buses_3_hop = [];
+buses_4_hop = [];
+load_buses_near_high_MW_gens = [];
+load_buses_near_low_MW_gens  = [];
+load_buses_near_high_inertia_gens = [];
+load_buses_near_low_inertia_gens  = [];
+
+for i_gen = 1:length(generator_locations)
+    % Gives all 1 hop buses only
+    buses_1_hop = [buses_1_hop; nearest(G,generator_locations(i_gen),1)];
+    % Gives all 2 hops buses only
+    buses_2_hop = [buses_2_hop; setdiff(nearest(G,generator_locations(i_gen),2),nearest(G,generator_locations(i_gen),1))]; 
+    % Gives all 3 hops buses only
+    buses_3_hop = [buses_3_hop; setdiff(nearest(G,generator_locations(i_gen),3),nearest(G,generator_locations(i_gen),2))];  
+    % Gives all 4 hops buses only
+    buses_4_hop = [buses_4_hop; setdiff(nearest(G,generator_locations(i_gen),4),nearest(G,generator_locations(i_gen),3))]; 
+end
+
+buses_1_hop = intersect(buses_1_hop, load_locations);
+buses_2_hop = intersect(buses_2_hop, load_locations);
+buses_3_hop = intersect(buses_3_hop, load_locations);
+buses_4_hop = intersect(buses_4_hop, load_locations);
+
+for i_gen = 1:5
+    load_buses_near_high_MW_gens = [load_buses_near_high_MW_gens; nearest(G,generator_size_ordering(end-i_gen),2)];
+    load_buses_near_low_MW_gens  = [load_buses_near_low_MW_gens; nearest(G,generator_size_ordering(i_gen),2)];
+    
+    load_buses_near_high_inertia_gens = [load_buses_near_high_inertia_gens; nearest(G,inertia_ordering(end-i_gen),2)];
+    load_buses_near_low_inertia_gens  = [load_buses_near_low_inertia_gens; nearest(G,inertia_ordering(i_gen),2)];
+end
+
+load_buses_near_high_MW_gens = intersect(load_buses_near_high_MW_gens, load_locations);
+load_buses_near_low_MW_gens  = intersect(load_buses_near_low_MW_gens, load_locations);
+
+load_buses_near_high_inertia_gens = intersect(load_buses_near_high_inertia_gens, load_locations);
+load_buses_near_low_inertia_gens  = intersect(load_buses_near_low_inertia_gens, load_locations);
+% -------------------------------------------------------------------------
 
 % System configurations
 Network = '68'; % Choose the IEEE bus system: '9', '39', '68', '145'
-agc_control = 1; % '1' enables AGC control; '0' disables AGC control
-agc_time_step = 4; % time interval in seconds between agc control
+agc_control = 0; % '1' enables AGC control; '0' disables AGC control
+agc_time_step = 2; % time interval in seconds between agc control
 pss_control = 0; % '1' enables PSS control; '0' disables PSS control
 num_area = 2; % 1- one area and 2 - two area
 load_changes = 1; % '1' enables load changes; '0' disables load changes
 TimeStep_of_simulation = 0.01; % in seconds
-SimulationTime = 80; % in seconds
+SimulationTime = 30; % in seconds
 PMU_SamplingFreq  = 50; % Measurements every second
 % -------------------------------------------------------------------------
 
 % Attack Parameters
-PMU_attack = 1; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
+PMU_attack = 0; % '1' enables cyber-attacks on PMUs; '0' disables cyber-attacks on PMUs
 AttackTypes = {'Latency','PacketDrop','Ramp','Step','Poisoning','Trapezoid','Freezing'};
 AT = AttackTypes{7};
 if ~PMU_attack 
@@ -119,11 +170,11 @@ attack.start_time_in_sec = 39; % randi(round(0.8*simParams.simTime),1,1);
 % Mention the attack duration for the attack in seconds
 attack_durations = linspace(15,25,n_attacks_on_duration_of_attack);
 % Number of load change scenarios
-n_lc_scenarios = 1; % Number of load changes (== # num of scenarios corresponding to the load changes)
-n_lc_events_per_scenario = 2; % Number of load changes in single scenario
+n_lc_scenarios = 15; % Number of load changes (== # num of scenarios corresponding to the load changes)
+n_lc_events_per_scenario = 1; % Number of load changes in single scenario
 % How many loads needs to change their nominal value during the simulation?
 % Can be a pre-defined number of loads or can be a random number
-n_loads_to_change = 1; % randi(10);
+% randi(10);
 n_lc_scen = 1;
 
 %--------------------------------------------------------------------------
@@ -134,7 +185,11 @@ for i_lc_scen = 1:n_lc_scen
     % Determine the buses at which load changes needs to happen
     % Below, the load change buses are picked randomly (user can mention the
     % load bus numbers without making them a random number)
-    loads_undergoing_change = 23; % randsample(load_locations, n_loads_to_change);
+    %{
+    modified_load_locations = area2_loads;
+    modified_load_locations = setdiff(modified_load_locations, [37 52]);
+    loads_undergoing_change = modified_load_locations; % randsample(load_locations, n_loads_to_change); % [48 23 1 33 47 44 21 51 46 15 37 50 41]; % randsample(load_locations, n_loads_to_change);
+    n_loads_to_change = length(loads_undergoing_change); 
     tmp_lvs = nominal_load_values(loads_undergoing_change);
     loads_undergoing_change_sorted = zeros(n_loads_to_change,1);
     
@@ -143,8 +198,46 @@ for i_lc_scen = 1:n_lc_scen
     end
     
     % load changes -- based on Latin Hyper Cube sampling
-    amount_of_load_change = (lhsnorm(tmp_lvs', diag(tmp_lvs*0.08),n_lhc_samples))'...
+    amount_of_load_change = (lhsnorm(tmp_lvs', diag(tmp_lvs*0.1),n_lhc_samples))'...
         - nominal_load_values(loads_undergoing_change);
+    amount_of_load_change = -abs(amount_of_load_change);
+    %}
+    
+    
+    area1_loads = setdiff(area1_loads, [37 52]);
+    area2_loads = setdiff(area2_loads, [37 52]);
+    area1_loads_undergoing_change = area1_loads; % randsample(load_locations, n_loads_to_change); % [48 23 1 33 47 44 21 51 46 15 37 50 41]; % randsample(load_locations, n_loads_to_change);
+    area2_loads_undergoing_change = area2_loads;
+    loads_undergoing_change = [area1_loads_undergoing_change; area2_loads_undergoing_change];
+    n_loads_to_change = length(area1_loads_undergoing_change) + length(area2_loads_undergoing_change); 
+    tmp1_lvs = nominal_load_values(area1_loads_undergoing_change);
+    tmp2_lvs = nominal_load_values(area2_loads_undergoing_change);
+%     loads_undergoing_change_sorted = zeros(n_loads_to_change,1);
+    
+    area1_loads_undergoing_change_sorted = zeros(length(area1_loads_undergoing_change),1);
+    area2_loads_undergoing_change_sorted = zeros(length(area2_loads_undergoing_change),1);
+    for i_l = 1:length(area1_loads_undergoing_change)
+        area1_loads_undergoing_change_sorted(i_l) = find(load_locations == area1_loads_undergoing_change(i_l));
+    end
+    for i_l = 1:length(area2_loads_undergoing_change)
+        area2_loads_undergoing_change_sorted(i_l) = find(load_locations == area2_loads_undergoing_change(i_l));
+    end
+    loads_undergoing_change_sorted = [area1_loads_undergoing_change_sorted; area2_loads_undergoing_change_sorted];
+    
+    % load changes -- based on Latin Hyper Cube sampling
+    area1_amount_of_load_change = (lhsnorm(tmp1_lvs', diag(tmp1_lvs*0.4),n_lhc_samples))'...
+        - nominal_load_values(area1_loads_undergoing_change);
+    area2_amount_of_load_change = (lhsnorm(tmp2_lvs', diag(tmp2_lvs*0.4),n_lhc_samples))'...
+        - nominal_load_values(area2_loads_undergoing_change);
+    
+    
+    amount_of_load_change = [-abs(area1_amount_of_load_change); abs(area2_amount_of_load_change)];
+
+    
+%     amount_of_load_change = [-0.8];
+%     3.22 +0.1 +0.8
+%     2.34 -0.3 -0.3 
+%          -0.2 +0.5   
     %--------------------------------------------------------------------------
     
     for i_load_changes = 1:n_lc_scenarios
@@ -153,7 +246,7 @@ for i_lc_scen = 1:n_lc_scen
         % %% start_time is chosen randomly
         % load_change_parameters.start_time = diag(sort(randi(SimulationTime-15,n_lc_events),'ascend'));
         % %% start_time is chosen deterministically
-        load_change_parameters.start_time = [randi([5,16],1,1) randi([25,40],1,1)];% sort(randi([0, 40],1,n_lc_events),'ascend'); % [15 35]; %
+        load_change_parameters.start_time = 2; % linspace(1,120,n_loads_to_change);% [randi([5,16],1,1) randi([25,40],1,1)];% sort(randi([0, 40],1,n_lc_events),'ascend'); % [15 35]; %
         % %% load changes are permanent: leave the end_time variable as empty
         % %% load changes are temporary: end_time variable is nonempty
         load_change_parameters.end_time   = []; % load_change_parameters.start_time + 0.01;
@@ -210,7 +303,7 @@ for i_lc_scen = 1:n_lc_scen
                 % Saving the Scenario description.txt file based on the user inputs:
                 Bus1      = sw_con(2,2);
                 Bus2      = sw_con(2,3);
-                
+                                                                                                                            
                 %--------------------------------------------------------------------------
                 
                 % Running over the list of attack locations
@@ -300,7 +393,24 @@ for i_lc_scen = 1:n_lc_scen
                                     FigureFile = sprintf('%s/ACE',scenDir);
                                     saveas(ace_plot,FigureFile,'jpg')
                                 end
-                                % close all
+                                figure('Position',[-1120, 0, 800, 600])
+                                subplot(3,1,1)
+                                plot(PMU.TimeStamps,PMU.f(:,area1_loads_undergoing_change),'LineWidth',2)
+                                title(sprintf('Scenario: %d', scenIdx));
+                                legend(string(area1_loads_undergoing_change),'Location','Best')
+                                legend boxoff
+                                subplot(3,1,2)
+                                plot(PMU.TimeStamps,PMU.Vm(:,area1_loads_undergoing_change),'LineWidth',2)
+                                title(sprintf('Scenario: %d', scenIdx));
+                                legend(string(area1_loads_undergoing_change),'Location','Best')
+                                legend boxoff
+                                subplot(3,1,3)
+                                plot(PMU.TimeStamps,PMU.Va(:,area1_loads_undergoing_change),'LineWidth',2)
+                                legend(string(area1_loads_undergoing_change),'Location','Best')
+                                legend boxoff
+                                title(sprintf('Scenario: %d', scenIdx));
+                                saveas(gcf, sprintf('%s/Load_change_locations',scenDir), 'jpg')
+%                                 close all
                             end
                             save(sprintf('%s/PMUData.mat',scenDir), 'PMU','PMU_SamplingFreq','SimulationTime', 'fmeas_con', 'TimeStep_of_simulation', 'AttackLocation', 't', 'PMU_samples', 'pelect');
                             save(sprintf('%s/SCADAData.mat',scenDir), 'SCADA','Required_NumofMeasEvery2Seconds_SCADA','SimulationTime','Vmeas_con');
@@ -319,6 +429,8 @@ for i_lc_scen = 1:n_lc_scen
         end
     end
 end
+%%
+
 % Convert to table format and write the table to a CSV file
 % scenDes_full_table = cell2table(scenDes_full);
 % writetable(scenDes_full_table,sprintf('%s/FullScenarioData.csv',ResDir),'WriteVariableNames',0)

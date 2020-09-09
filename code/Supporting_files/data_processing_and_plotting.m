@@ -146,6 +146,7 @@ for i_SCADA = 1:n_SCADA
 end
 
 %------------------------------------------------------------------------
+%{
 % If the Euclidean norm based metrics needs to be computed using SCADA and
 % PMU measurements [voltage magnitudes]
 if compute_metrics
@@ -177,6 +178,7 @@ if compute_metrics
     scenDes_full(scenIdx_local+1,19:21) = metric_data(1,:);
     scenDes_full(scenIdx_local+1,22:24) = metric_data(2,:);
 end 
+%}
 %------------------------------------------------------------------------
 %% Plots
 %------------------------------------------------------------------------
@@ -217,7 +219,7 @@ title('Difference between PMU and SCADA measurements')
 %}
 %------------------------------------------------------------------------
 %% PMU Frequency plots 
-frequency_plot = figure;
+frequency_plot = figure('Position',[-1680 528 560 420]);
 freqs = PMU.f(:, PMU_locations);
 mean_freq = mean(freqs,2);
 plot(t(PMU_samples(1:end)), PMU.f(:, PMU_locations),'LineWidth',1.5); hold on
@@ -225,18 +227,21 @@ plot(t(PMU_samples(1:end)), PMU.f(:, PMU_locations),'LineWidth',1.5); hold on
 % plot(t(PMU_samples), 59.9*ones(size(mean_freq)), '--', 'color', color2,'LineWidth',1.5);
 xlabel('time [s]');
 ylabel('Frequency [Hz]');
+title(sprintf('Scenario: %d', scenIdx));
 % ylim([59, 61]);
 %------------------------------------------------------------------------
 %% PMU Voltage Magnitude and Angle plots
-voltage_plot = figure;
+voltage_plot = figure('Position',[-1120 528 560 420]);
 subplot(2,1,1)
 plot(t(PMU_samples),PMU.Vm(:, PMU_locations), 'LineWidth',2)
+title(sprintf('Scenario: %d', scenIdx));
 xlabel('time [s]')
 ylabel('Vm [pu]')
 subplot(2,1,2)
 plot(t(PMU_samples),PMU.Va(:, PMU_locations), 'LineWidth',2)
 xlabel('time [s]');
 ylabel('Voltage angle [deg]')
+title(sprintf('Scenario: %d', scenIdx));
 %}
 %------------------------------------------------------------------------
 %% Metric Plots
@@ -330,6 +335,10 @@ if agc_control
         xlabel('time [s]')
     end
 end
+
+% Down-sampling turbine governor control setpoints such that it matches
+% with the PMU sampling frequency
+% tg_sig = (tg_sig(:,1:2:end-1))'; % Rows - time; columns - generators 
 %{
 figure
 plot(t, sum(tg_sig,1), 'linewidth',3)
